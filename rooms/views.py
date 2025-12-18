@@ -3,15 +3,11 @@ from .models import HotelRoom
 from .serializers import HotelRoomSerializer
 
 class HotelRoomViewSet(viewsets.ModelViewSet):
-    
-    queryset = HotelRoom.objects.all()
+    queryset = HotelRoom.objects.all().prefetch_related('bookings')
     serializer_class = HotelRoomSerializer
-    
-    
     filter_backends = [filters.OrderingFilter]
     ordering_fields = ['price_per_night', 'created_at']
-    ordering = ['-created_at'] 
+    ordering = ['-created_at']
     
     def perform_destroy(self, instance):
-        
         instance.delete()

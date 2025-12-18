@@ -15,26 +15,45 @@ class BookingSerializer(serializers.ModelSerializer):
         fields = ['id', 'room_id', 'date_start', 'date_end', 'created_at']
         read_only_fields = ['id', 'created_at']
     
+    
     def validate(self, data):
         """
         Валидация дат:
         1. date_end должен быть >= date_start
-        2. Даты должны быть валидными (автоматически проверяется DateField)
+        2. Проверка на пересечение с существующими бронированиями
         """
-        if data['date_start'] > data['date_end']:
+        date_start = data['date_start']
+        date_end = data['date_end']
+        room = data['room']
+        
+        
+        if date_start > date_end:
             raise serializers.ValidationError({
                 "date_end": "Дата окончания должна быть позже или равна дате начала"
             })
         
-        # Дополнительная валидация (можно добавить проверку на пересечение бронирований)
-        # room = data['room']
-        # existing_bookings = Booking.objects.filter(
-        #     room=room,
-        #     date_start__lt=data['date_end'],
-        #     date_end__gt=data['date_start']
-        # )
-        # if existing_bookings.exists():
-        #     raise serializers.ValidationError("Номер уже забронирован на эти даты")
+    
+        from django.utils import timezone
+        if date_start < timezone.now().date():
+            raise serializers.ValidationError({
+                "date_start": "Дата начала не может быть в прошлом"
+            })
+        
+        
+        overlapping_bookings = Booking.objects.filter(
+            room=room,
+            date_start__lt=date_end,  
+            date_end__gt=date_start   
+        )
+        
+        
+        if self.instance:
+            overlapping_bookings = overlapping_bookings.exclude(id=self.instance.id)
+        
+        if overlapping_bookings.exists():
+            raise serializers.ValidationError({
+                "non_field_errors": ["Номер уже забронирован на выбранные даты"]
+            })
         
         return data
     
