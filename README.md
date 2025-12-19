@@ -1,2 +1,2 @@
-# hotel-booking-django
-Сервис для управления номерами отелей и бронированиями.
+# Hotel Booking API
+Django REST API для управления номерами отеля.

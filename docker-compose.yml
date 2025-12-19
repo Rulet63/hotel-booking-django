@@ -1,0 +1,41 @@
+services:
+  db:
+    image: postgres:15
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: hotel_db
+      POSTGRES_USER: hotel_user
+      POSTGRES_PASSWORD: hotel_password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hotel_user -d hotel_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  web:
+    build: .
+    command: >
+      sh -c "sleep 3 &&
+             python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      # Явно задаем переменные для Docker
+      POSTGRES_HOST: db  # ВАЖНО: говорим Django подключаться к контейнеру 'db'
+      POSTGRES_DB: hotel_db
+      POSTGRES_USER: hotel_user
+      POSTGRES_PASSWORD: hotel_password
+      POSTGRES_PORT: 5432
+      DEBUG: "True"
+      SECRET_KEY: "django-insecure-dev-key-change-in-production"
+      ALLOWED_HOSTS: "localhost,127.0.0.1,web"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
