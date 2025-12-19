@@ -1,24 +1,77 @@
-[tool.poetry]
-name = "hotel-booking-django"
-version = "0.1.0"
-description = "Hotel Booking System with Django"
-authors = ["Your Name <you@example.com>"]
-readme = "README.md"
-
-[tool.poetry.dependencies]
-python = "^3.12"
-Django = "^4.2"
-djangorestframework = "^3.14"  # Исправлено: django-rest-framework → djangorestframework
-psycopg2-binary = "^2.9"
-python-dotenv = "^1.0"
-drf-yasg = "^1.21"  # Добавляем недостающий пакет
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^7.4"
-pytest-django = "^4.7"
-pytest-cov = "^4.1"
-factory-boy = "^3.3"
-
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "hotel-booking-django"
+version = "0.1.0"
+description = "Hotel Booking Management System"
+authors = ["Your Name <your@email.com>"]
+readme = "README.md"
+packages = [
+    { include = "src" },
+    { include = "tests", format = "sdist" }
+]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+django = ">=4.2,<5.0"
+djangorestframework = "^3.15"
+psycopg2-binary = "^2.9"
+gunicorn = "^21.0"
+pydantic-settings = "^2.4"
+python-dotenv = "^1.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0"
+pytest-django = "^4.8"
+pytest-cov = "^5.0"
+ruff = "^0.1"
+pre-commit = "^3.6"
+factory-boy = "^3.3"
+
+[tool.poetry.scripts]
+hotel-booking = "src.manage:main"
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B", "C4", "UP"]
+ignore = []
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"
+python_files = "tests.py test_*.py *_tests.py"
+addopts = "-v --tb=short --strict-markers"
+testpaths = ["tests"]
+
+[tool.black]
+line-length = 88
+target-version = ['py312']
+
+[tool.isort]
+profile = "black"
+line_length = 88
+
+[tool.coverage.run]
+source = ["src"]
+omit = ["*/tests/*", "*/migrations/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
