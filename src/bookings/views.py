@@ -1,47 +1,61 @@
-from rest_framework import viewsets, status
+from rest_framework import generics, status
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
-from django.shortcuts import get_object_or_404
 from .models import Booking
-from rooms.models import HotelRoom
-from .serializers import BookingSerializer
+from .serializers import BookingSerializer, BookingListSerializer
 
 
-class BookingViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint для управления бронированиями.
-    POST /api/bookings/ - создать бронь
-    DELETE /api/bookings/{id}/ - удалить бронь
-    """
+class BookingCreateTZView(generics.CreateAPIView):
+    
     queryset = Booking.objects.all()
     serializer_class = BookingSerializer
-    permission_classes = [AllowAny]  # По ТЗ - без авторизации
     
-    def get_serializer_context(self):
-        """Добавляем request в контекст для сериализатора"""
-        context = super().get_serializer_context()
-        context['request'] = self.request
-        return context
-    
-    def list(self, request):
-        """Отключаем общий список бронирований (не требуется по ТЗ)"""
+    def create(self, request, *args, **kwargs):
+        
+        if request.content_type == 'application/x-www-form-urlencoded':
+            data = {
+                'room_id': request.POST.get('room_id'),
+                'date_start': request.POST.get('date_start'),
+                'date_end': request.POST.get('date_end'),
+                
+            }
+            serializer = self.get_serializer(data=data)
+        else:
+            serializer = self.get_serializer(data=request.data)
+        
+        serializer.is_valid(raise_exception=True)
+        booking = serializer.save()
+        
+       
         return Response(
-            {"detail": "Используйте GET /api/rooms/{id}/bookings/ для получения списка броней"},
-            status=status.HTTP_405_METHOD_NOT_ALLOWED
+            {'booking_id': booking.id},
+            status=status.HTTP_201_CREATED
         )
 
 
-class RoomBookingsViewSet(viewsets.ViewSet):
-    """
-    API endpoint для получения списка броней конкретного номера.
-    GET /api/rooms/{id}/bookings/
-    """
-    permission_classes = [AllowAny]
+class BookingDeleteTZView(generics.DestroyAPIView):
     
-    def list(self, request, room_id=None):
-        """Список бронирований для конкретного номера"""
-        room = get_object_or_404(HotelRoom, id=room_id)
-        bookings = Booking.objects.filter(room=room).order_by('date_start')
+    queryset = Booking.objects.all()
+    lookup_field = 'id'
+    lookup_url_kwarg = 'booking_id'
+    
+    def delete(self, request, *args, **kwargs):
+        self.destroy(request, *args, **kwargs)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class RoomBookingsTZView(generics.ListAPIView):
+    
+    serializer_class = BookingListSerializer
+    #pagination_class = None  
+    
+    def get_queryset(self):
+        room_id = self.request.GET.get('room_id')
+        if not room_id:
+            return Booking.objects.none()
         
-        serializer = BookingSerializer(bookings, many=True, context={'request': request})
-        return Response(serializer.data)
+        try:
+            room_id = int(room_id)
+        except ValueError:
+            return Booking.objects.none()
+        
+        return Booking.objects.filter(room_id=room_id).order_by('date_start')
