@@ -32,3 +32,4 @@ class HotelRoomSerializer(serializers.ModelSerializer):
                 "Описание не может превышать 1000 символов"
             )
         return value
+

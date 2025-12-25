@@ -1,53 +1,65 @@
 from rest_framework import generics, status
 from rest_framework.response import Response
+from rest_framework.pagination import PageNumberPagination
+from django.shortcuts import get_object_or_404
 
 from .models import Booking
+from rooms.models import HotelRoom
 from .serializers import BookingListSerializer, BookingSerializer
 
 
-class BookingCreateTZView(generics.CreateAPIView):
+class CustomBookingPagination(PageNumberPagination):
+    page_size = 15
+    page_size_query_param = 'limit'
+    max_page_size = 50
+    
+    def get_paginated_response(self, data):
+        return Response({
+            'page': {
+                'current': self.page.number,
+                'total': self.page.paginator.num_pages,
+                'size': len(data),
+            },
+            'total_count': self.page.paginator.count,
+            'next': self.get_next_link(),
+            'previous': self.get_previous_link(),
+            'results': data
+        })
+
+
+class BookingCreateView(generics.CreateAPIView):
     queryset = Booking.objects.all()
     serializer_class = BookingSerializer
-
+    
     def create(self, request, *args, **kwargs):
-        if request.content_type == "application/x-www-form-urlencoded":
-            data = {
-                "room_id": request.POST.get("room_id"),
-                "date_start": request.POST.get("date_start"),
-                "date_end": request.POST.get("date_end"),
-            }
-            serializer = self.get_serializer(data=data)
-        else:
-            serializer = self.get_serializer(data=request.data)
-
+        serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         booking = serializer.save()
+        
+        return Response(
+            {"booking_id": booking.id},
+            status=status.HTTP_201_CREATED
+        )
 
-        return Response({"booking_id": booking.id}, status=status.HTTP_201_CREATED)
 
-
-class BookingDeleteTZView(generics.DestroyAPIView):
+class BookingDeleteView(generics.DestroyAPIView):
     queryset = Booking.objects.all()
-    lookup_field = "id"
-    lookup_url_kwarg = "booking_id"
-
-    def delete(self, request, *args, **kwargs):
-        self.destroy(request, *args, **kwargs)
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class RoomBookingsTZView(generics.ListAPIView):
+class RoomBookingsListView(generics.ListAPIView):
     serializer_class = BookingListSerializer
-    # pagination_class = None
-
+    pagination_class = CustomBookingPagination
+    
     def get_queryset(self):
-        room_id = self.request.GET.get("room_id")
+        room_id = self.request.query_params.get("room_id")
+        
         if not room_id:
-            return Booking.objects.none()
-
-        try:
-            room_id = int(room_id)
-        except ValueError:
-            return Booking.objects.none()
-
-        return Booking.objects.filter(room_id=room_id).order_by("date_start")
+            return Booking.objects.all().select_related('room').order_by("date_start")
+        
+        
+        get_object_or_404(HotelRoom, id=room_id)
+        
+        
+        return Booking.objects.filter(
+            room_id=room_id
+        ).select_related('room').order_by("date_start")

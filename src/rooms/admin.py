@@ -8,3 +8,8 @@ class HotelRoomAdmin(admin.ModelAdmin):
     list_display = ("id", "price_per_night", "created_at")
     list_filter = ("created_at",)
     search_fields = ("description",)
+    
+   
+    ordering = ("-created_at",)  
+    list_per_page = 20
+

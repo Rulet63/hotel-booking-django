@@ -11,18 +11,19 @@ WORKDIR /app
 COPY pyproject.toml poetry.lock ./
 
 RUN pip install poetry && \
-    poetry config virtualenvs.create false
-
-RUN poetry install --no-interaction --no-ansi --no-root
+    poetry config virtualenvs.create false && \
+    poetry install --no-interaction --no-ansi --no-root
 
 COPY . .
 
-# Меняем рабочую директорию на src, где manage.py
 WORKDIR /app/src
 
-RUN useradd -m -u 1000 django && \
-    chown -R django:django /app
+RUN useradd -m -u 1000 django
+
+RUN mkdir -p /app/src/static && \
+    mkdir -p /app/src/media && \
+    chown -R django:django /app/src/static /app/src/media
 
 USER django
 
-CMD ["sh", "-c", "python manage.py runserver 0.0.0.0:8000"]
+CMD ["sh", "-c", "python manage.py migrate && uvicorn config.asgi:application --host 0.0.0.0 --port 8000 --workers 5"]

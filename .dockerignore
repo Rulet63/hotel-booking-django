@@ -10,7 +10,6 @@ __pycache__/
 htmlcov/
 
 # Environments
-.env
 .venv
 env/
 venv/
