@@ -23,3 +23,4 @@ class Command(BaseCommand):
                 else:
                     self.stdout.write(self.style.ERROR("База данных недоступна!"))
                     raise
+

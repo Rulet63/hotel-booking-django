@@ -17,3 +17,4 @@ class Booking(models.Model):
 
     def __str__(self):
         return f"Booking #{self.id} for Room {self.room_id}"
+

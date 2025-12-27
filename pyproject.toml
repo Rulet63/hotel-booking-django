@@ -7,7 +7,7 @@ name = "hotel-booking"
 version = "0.1.0"
 description = "Hotel Booking System"
 authors = ["Your Name <your@email.com>"]
-packages = []
+packages = [{ include = "src" }]
 
 [tool.poetry.dependencies]
 python = ">=3.12,<3.13"

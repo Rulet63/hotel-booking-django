@@ -23,4 +23,5 @@ class HotelRoomListView(generics.ListCreateAPIView):
 class HotelRoomDetailView(generics.RetrieveDestroyAPIView):
     queryset = HotelRoom.objects.all()
     serializer_class = HotelRoomSerializer
+
     

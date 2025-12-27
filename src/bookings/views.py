@@ -63,3 +63,4 @@ class RoomBookingsListView(generics.ListAPIView):
         return Booking.objects.filter(
             room_id=room_id
         ).select_related('room').order_by("date_start")
+    

@@ -18,3 +18,4 @@ class BookingAdmin(admin.ModelAdmin):
         return obj.date_start <= today <= obj.date_end
     is_active.boolean = True
     is_active.short_description = "Active"
+    
