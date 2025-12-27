@@ -1,0 +1,30 @@
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "hotel-booking"
+version = "0.1.0"
+description = "Hotel Booking System"
+authors = ["Your Name <your@email.com>"]
+packages = [{ include = "src" }]
+
+[tool.poetry.dependencies]
+python = ">=3.12,<3.13"
+django = "^4.2"
+djangorestframework = "^3.15"
+psycopg2-binary = "^2.9"
+uvicorn = "^0.29"
+python-dotenv = "^1.0"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0"
+pytest-django = "^4.8"
+ruff = "^0.4"
+
+[tool.ruff]
+line-length = 88
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"

@@ -1,0 +1,14 @@
+{
+     "python.defaultInterpreterPath": "./venv/bin/python",
+    "python.testing.pytestEnabled": true,
+    "python.envFile": "${workspaceFolder}/.env",
+    
+    "python.analysis.extraPaths": [
+        "./src",
+        "./tests"
+    ],
+    "python.autoComplete.extraPaths": [
+        "./src", 
+        "./tests"
+    ]
+}
